@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Plant Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h1>🌿 Smart Plant Monitor</h1>
+    <!-- <img src="http://<your-ipcam-ip>:port/mjpeg" width="320" /> -->
+    <table border="1">
+        <tr><th>Time</th><th>Rain</th><th>Soil</th></tr>
+        {% for item in data %}
+        <tr>
+            <td>{{ item.time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ 'Yes' if item.rain else 'No' }}</td>
+            <td>{{ item.soil }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
