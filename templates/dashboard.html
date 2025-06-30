@@ -1,21 +1,89 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Smart Plant Dashboard</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <title>Smart Plant Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { background-color: #0f172a; color: #f1f5f9; font-family: sans-serif; margin: 0; padding: 2rem; }
+    .card { background: #1e293b; border-radius: 1rem; padding: 1.5rem; margin: 1rem 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .title { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .value { font-size: 2rem; font-weight: bold; }
+    .online { color: #22c55e; }
+    .offline { color: #ef4444; }
+    .ip-camera { width: 50%; height: 50%;}
+  </style>
 </head>
 <body>
-    <h1>🌿 Smart Plant Monitor</h1>
-    <!-- <img src="http://<your-ipcam-ip>:port/mjpeg" width="320" /> -->
-    <table border="1">
-        <tr><th>Time</th><th>Rain</th><th>Soil</th></tr>
-        {% for item in data %}
-        <tr>
-            <td>{{ item.time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            <td>{{ 'Yes' if item.rain else 'No' }}</td>
-            <td>{{ item.soil }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+  <h1>🌿 Smart Plant Monitor</h1>
+
+  <div class="grid">
+    <div class="card">
+      <div class="title">🌡 Temperature</div>
+      <div id="temp" class="value">--</div>
+    </div>
+    <div class="card">
+      <div class="title">💧 Humidity</div>
+      <div id="humidity" class="value">--</div>
+    </div>
+    <div class="card">
+      <div class="title">🌱 Soil Moisture</div>
+      <div id="soil" class="value">--</div>
+    </div>
+    <div class="card">
+      <div class="title">📡 Device</div>
+      <div id="status" class="value online">Online</div>
+    </div>
+  </div>
+    <div class="card ip-camera">
+    <div class="title">🎥 IP Camera</div>
+    <img src="http://192.168.1.19/videostream.cgi?loginuse=admin&loginpas=Tammy28293" width="100%" style="border-radius: 1rem;">
+    </div>
+
+  <script>
+    let refreshInterval = 5000; // 5 seconds when online
+
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/latest');
+        const data = await res.json();
+
+        const latestTime = new Date(data.time);
+        const now = new Date();
+        const diffSeconds = Math.abs(now - latestTime);
+        
+        
+        
+        if (diffSeconds <= 90000) {
+            console.log(diffSeconds);
+
+            document.getElementById('status').textContent = 'Offline';
+            document.getElementById('status').className = 'value offline';
+            refreshInterval = 300000; // 5 minutes
+
+        } else {
+        
+            console.log(diffSeconds);
+            document.getElementById('temp').textContent = data.temp + ' °C';
+            document.getElementById('humidity').textContent = data.humidity + ' %';
+            document.getElementById('soil').textContent = data.soil;
+            document.getElementById('status').textContent = 'Online';
+            document.getElementById('status').className = 'value online';
+          refreshInterval = 5000; 
+        }
+      } catch (err) {
+        document.getElementById('status').textContent = 'Offline';
+        document.getElementById('status').className = 'value offline';
+        refreshInterval = 300000; // 5 minutes
+      }
+
+      setTimeout(fetchData, refreshInterval);
+    }
+
+    fetchData();
+  </script>
 </body>
 </html>
+
